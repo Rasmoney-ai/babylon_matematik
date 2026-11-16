@@ -8,10 +8,10 @@ import { Level1 } from './game/level1.js';
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Ingen skygger: skumringslyset er blødt, og det sparer ydelse på Quest
+renderer.shadowMap.enabled = false;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1.15;
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
@@ -46,6 +46,7 @@ renderer.setAnimationLoop(() => {
   controls.update(dt);
   interaction.update();
   level.update(dt);
+  world.update(dt, clock.elapsedTime);
   renderer.render(scene, camera);
 });
 

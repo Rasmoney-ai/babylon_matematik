@@ -97,8 +97,11 @@ function jar(color = '#a8683d') {
   return m;
 }
 
-function ziggurat(brickMat, glazeMat) {
+function ziggurat(mudMat, glazeMat) {
   const g = new THREE.Group();
+  // Mørkere udgave af lerstenene, så zigguraten står som en silhuet mod gløden
+  const brickMat = mudMat.clone();
+  brickMat.color.set('#a39790');
   const tiers = [[44, 9, 44], [32, 8, 32], [21, 7, 21], [12, 5, 12]];
   let y = 0;
   tiers.forEach(([w, h, d]) => {
@@ -110,6 +113,25 @@ function ziggurat(brickMat, glazeMat) {
   const temple = box(7, 4, 7, glazeMat);
   temple.position.y = y + 2;
   g.add(temple);
+  // Varmt lys fra templets åbning mod gården
+  const glowMat = new THREE.MeshBasicMaterial({ color: '#ffb25c', fog: false });
+  const door = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.4), glowMat);
+  door.position.set(0, y + 1.2, 3.52);
+  g.add(door);
+  [-2.3, 2.3].forEach((x) => {
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.9), glowMat);
+    win.position.set(x, y + 2.3, 3.52);
+    g.add(win);
+  });
+  // Ildsteder på trinnene ved trappen (kun emissive flammer, intet ekstra lys)
+  const flames = [];
+  [[-4.2, 9 + 8, 16.2], [4.2, 9 + 8, 16.2], [-4.2, 9, 22.2], [4.2, 9, 22.2], [-2.5, y, 6.2], [2.5, y, 6.2]].forEach(([x, fy, z]) => {
+    const f = flame(0.55, 3);
+    f.position.set(x, fy, z);
+    g.add(f);
+    flames.push(f);
+  });
+  g.userData.flames = flames;
   // Den store trappe mod gården
   const stair = box(6, 0.5, 30, brickMat);
   stair.position.set(0, 12, 24);
@@ -118,33 +140,199 @@ function ziggurat(brickMat, glazeMat) {
   return g;
 }
 
+
+// --- Ild og lys i skumringen ---------------------------------------------------
+// Blødt, rundt lysskær bag flammerne (tegnet på canvas, ingen ekstern tekstur)
+let haloTex = null;
+function haloTexture() {
+  if (haloTex) return haloTex;
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,200,130,1)');
+  g.addColorStop(0.25, 'rgba(255,150,70,0.45)');
+  g.addColorStop(1, 'rgba(255,120,40,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  haloTex = new THREE.CanvasTexture(c);
+  haloTex.colorSpace = THREE.SRGBColorSpace;
+  return haloTex;
+}
+
+// Dråbeformet flamme: en varm ydre kappe og en lys kerne. Skaleres med `size`.
+const flameOuterMat = new THREE.MeshBasicMaterial({ color: '#ff8a2e', transparent: true, opacity: 0.9, depthWrite: false, fog: false });
+const flameInnerMat = new THREE.MeshBasicMaterial({ color: '#ffe2a0', fog: false });
+const flameGeo = new THREE.LatheGeometry(
+  [[0, 0], [0.45, 0.12], [0.55, 0.35], [0.42, 0.65], [0.2, 0.9], [0, 1.15]].map(([x, y]) => new THREE.Vector2(x, y)), 10);
+function flame(size = 0.05, halo = 3) {
+  const g = new THREE.Group();
+  const outer = new THREE.Mesh(flameGeo, flameOuterMat);
+  outer.scale.set(size, size * 1.6, size);
+  const inner = new THREE.Mesh(flameGeo, flameInnerMat);
+  inner.scale.set(size * 0.5, size * 0.9, size * 0.5);
+  inner.position.y = size * 0.08;
+  g.add(outer, inner);
+  if (halo) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: haloTexture(), color: '#ffffff', transparent: true, opacity: 0.35,
+      blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
+    }));
+    s.scale.setScalar(size * halo * 2);
+    s.position.y = size * 0.7;
+    g.add(s);
+  }
+  g.userData.outer = outer;
+  g.userData.base = size;
+  return g;
+}
+
+// Olielampe: lille åben lerskål med en tud, hvor vægen brænder
+function oilLamp(clay = '#a8683d') {
+  const g = new THREE.Group();
+  const pts = [[0, 0], [0.04, 0.0], [0.065, 0.02], [0.07, 0.04], [0.062, 0.045], [0.055, 0.03], [0, 0.028]]
+    .map(([x, y]) => new THREE.Vector2(x, y));
+  const mat = new THREE.MeshStandardMaterial({ color: clay, roughness: 0.9, side: THREE.DoubleSide });
+  const bowl = new THREE.Mesh(new THREE.LatheGeometry(pts, 18), mat);
+  bowl.castShadow = true;
+  const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.02, 0.06, 8), mat);
+  spout.rotation.z = Math.PI / 2 + 0.25; spout.position.set(0.075, 0.035, 0);
+  // Olien i skålen
+  const oil = new THREE.Mesh(new THREE.CircleGeometry(0.055, 16), new THREE.MeshStandardMaterial({ color: '#3a2410', roughness: 0.3 }));
+  oil.rotation.x = -Math.PI / 2; oil.position.y = 0.032;
+  const f = flame(0.022, 4);
+  f.position.set(0.1, 0.05, 0);
+  g.add(bowl, spout, oil, f);
+  g.userData.flame = f;
+  return g;
+}
+
+// Fakkel i en jernholder på muren
+function torch() {
+  const g = new THREE.Group();
+  const iron = new THREE.MeshStandardMaterial({ color: '#2b2622', roughness: 0.6, metalness: 0.5 });
+  const wood = new THREE.MeshStandardMaterial({ color: '#4a3020', roughness: 1 });
+  const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.28), iron);
+  bracket.position.set(0, 0, 0.14);
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.022, 0.6, 7), wood);
+  stick.position.set(0, 0.15, 0.28); stick.rotation.x = 0.18;
+  const head = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.04, 0.14, 8), iron);
+  head.position.set(0, 0.47, 0.34);
+  const f = flame(0.08, 3.5);
+  f.position.set(0, 0.52, 0.34);
+  g.add(bracket, stick, head, f);
+  g.userData.flame = f;
+  return g;
+}
+
+// Stjerner: et par hundrede punkter højt på himlen, svagest mod solnedgangen
+function stars(radius = 420) {
+  const pos = [], col = [];
+  for (let i = 0; i < 520; i++) {
+    const y = 0.22 + Math.random() * 0.78;               // kun over ca. 13 grader
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.sqrt(1 - y * y);
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    pos.push(x * radius, y * radius, z * radius);
+    // Svagere lavt på himlen og i retning af gløden (nord, -z)
+    const glowSide = Math.max(0, -z);
+    let b = (0.25 + Math.random() * 0.75) * Math.min(1, (y - 0.22) * 2.2) * (1 - glowSide * 0.75);
+    if (Math.random() < 0.04) b = Math.min(1, b * 2);     // enkelte klare stjerner
+    const warm = Math.random() * 0.12;
+    col.push(b, b * (1 - warm * 0.4), b * (1 - warm));
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+    size: 1.6, sizeAttenuation: false, vertexColors: true, transparent: true,
+    depthWrite: false, fog: false, toneMapped: false,
+  }));
+  pts.renderOrder = -1;
+  return pts;
+}
+
+// Tynd, tiltagende månesegl lavt i vest, tæt på hvor solen gik ned
+function crescentMoon() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff4dc';
+  ctx.beginPath(); ctx.arc(64, 64, 50, 0, Math.PI * 2); ctx.fill();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath(); ctx.arc(52, 58, 48, 0, Math.PI * 2); ctx.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, fog: false, toneMapped: false }));
+  s.scale.setScalar(9);
+  return s;
+}
+
+// Rolig flakken: et par langsomme sinusser oven i hinanden, forskudt per flamme
+function flicker(t, seed) {
+  return 1 + 0.07 * Math.sin(t * 6.1 + seed) + 0.045 * Math.sin(t * 11.3 + seed * 2.7) + 0.025 * Math.sin(t * 23.7 + seed * 5.1);
+}
+
 // --- Selve scenen ----------------------------------------------------------------
 export function buildEduba(scene) {
-  // Himmel
+  // Himmel i skumringen: solen er lige gået ned bag zigguraten (nord, -z).
+  // Orange glød lavt i horisonten mod nord, der går over i dyb blå og indigo opad.
+  const fogColor = new THREE.Color('#3b4262');
   const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(450, 32, 16),
+    new THREE.SphereGeometry(450, 48, 24),
     new THREE.ShaderMaterial({
-      side: THREE.BackSide, depthWrite: false,
-      uniforms: { top: { value: new THREE.Color('#2f6fb8') }, horizon: { value: new THREE.Color('#f3dcb0') } },
+      side: THREE.BackSide, depthWrite: false, fog: false,
+      uniforms: {
+        zenith: { value: new THREE.Color('#0d1230') },
+        upper: { value: new THREE.Color('#1f3a72') },
+        horizon: { value: new THREE.Color('#4a6890') },
+        glow: { value: new THREE.Color('#ea9450') },
+        glowHot: { value: new THREE.Color('#ffb060') },
+        pale: { value: new THREE.Color('#8fa0ac') },
+        below: { value: fogColor },
+        sunDir: { value: new THREE.Vector2(0.12, -1).normalize() },  // x/z-retning mod solnedgangen
+      },
       vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: `uniform vec3 top; uniform vec3 horizon; varying vec3 vP;
-        void main(){ float h = clamp(vP.y, 0.0, 1.0); gl_FragColor = vec4(mix(horizon, top, pow(h, 0.55)), 1.0);
-        #include <colorspace_fragment>
+      fragmentShader: `uniform vec3 zenith; uniform vec3 upper; uniform vec3 horizon; uniform vec3 glow; uniform vec3 glowHot; uniform vec3 pale; uniform vec3 below; uniform vec2 sunDir;
+        varying vec3 vP;
+        void main(){
+          vec3 d = normalize(vP);
+          float h = max(d.y, 0.0);
+          // Grundgradient: lys blågrå horisont -> blå -> indigo i zenit
+          vec3 col = mix(horizon, upper, smoothstep(0.0, 0.35, h));
+          col = mix(col, zenith, smoothstep(0.3, 1.0, h));
+          // Glød mod solnedgangen: bred og rosa-orange, med en smal hed stribe nederst
+          float facing = max(dot(normalize(d.xz + 1e-5), sunDir), 0.0);
+          float wide = pow(facing, 2.6) * exp(-h * 4.2);
+          float core = pow(facing, 5.0) * exp(-h * 10.0);
+          // Først en bleg, kølig overgang og derefter den varme glød.
+          // Blå -> blegt gråblå -> orange giver ingen lilla mellemtoner.
+          col = mix(col, pale, smoothstep(0.0, 0.5, wide) * 0.7);
+          col = mix(col, glow, clamp(pow(wide, 1.4), 0.0, 1.0) * 0.9);
+          col = mix(col, glowHot, clamp(core, 0.0, 1.0));
+          // Under horisonten: samme farve som tågen, så jorden glider ind i himlen
+          col = mix(col, below, smoothstep(0.0, -0.02, d.y));
+          gl_FragColor = vec4(col, 1.0);
+          #include <colorspace_fragment>
         }`,
     }),
   );
+  sky.renderOrder = -2;
   scene.add(sky);
-  scene.fog = new THREE.Fog('#ecd3a4', 90, 380);
+  scene.add(stars());
+  const moon = crescentMoon();
+  moon.position.set(-200, 140, -280);     // lavt i nordvest, tæt på gløden (lige over murene)
+  moon.material.rotation = -0.7;          // den lyse side vender ned mod solen
+  scene.add(moon);
+  scene.fog = new THREE.Fog(fogColor, 45, 300);
 
-  // Lys: varm eftermiddagssol
-  scene.add(new THREE.HemisphereLight('#cfe3ff', '#a0784a', 1.4));
-  const sun = new THREE.DirectionalLight('#ffe9c4', 2.6);
-  sun.position.set(18, 30, 12);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 80 });
-  sun.shadow.bias = -0.0005;
-  scene.add(sun);
+  // Lys: køligt, lavt omgivelseslys fra himlen + et svagt varmt skær fra horisonten.
+  // Skygger er slået fra – i skumringen er de næsten usynlige, og det sparer ydelse på Quest.
+  scene.add(new THREE.HemisphereLight('#8a9cc8', '#3a2c24', 1.15));
+  const dusk = new THREE.DirectionalLight('#ff9e6e', 0.55);
+  dusk.position.set(-6, 5, -40);
+  scene.add(dusk);
+
+  // Flammer der flakker. Højst fire PointLights i alt, ingen af dem kaster skygger.
+  const flickers = [];   // { flame, light, base, seed }
+  const addFire = (obj, light, seed) => flickers.push({ flame: obj, light, base: light ? light.intensity : 0, seed });
 
   // Jord
   const ground = new THREE.Mesh(
@@ -194,11 +382,23 @@ export function buildEduba(scene) {
   gate.position.set(0, 0, -7);
   scene.add(gate);
 
+  // Fakler på muren på hver side af porten (2 PointLights)
+  [-2.75, 2.75].forEach((x, i) => {
+    const t = torch();
+    t.position.set(x, 2.25, -6.7);
+    scene.add(t);
+    const l = new THREE.PointLight('#ff9a48', 4.5, 9, 2);
+    l.position.set(x, 2.85, -6.2);
+    scene.add(l);
+    addFire(t.userData.flame, l, i * 3.1 + 1);
+  });
+
   // Zigguraten
   const zig = ziggurat(mud, glaze);
   zig.position.set(0, 0, -62);
   zig.scale.setScalar(1.25);
   scene.add(zig);
+  zig.userData.flames.forEach((f, i) => addFire(f, null, i * 1.7 + 4));
 
   // Fjerne bymure og huse for dybde
   for (let i = 0; i < 26; i++) {
@@ -254,7 +454,55 @@ export function buildEduba(scene) {
     const post = box(0.1, 1.62, 0.1, wood); post.position.set(x, 0.81, -2.32); scene.add(post);
   });
 
+  // Olielampe på skriverbordet: oplyser opgavetavlen og svarbrikkerne varmt forfra
+  const lamp = oilLamp();
+  lamp.position.set(-0.6, 0.75, -0.78);
+  lamp.rotation.y = -0.5;
+  scene.add(lamp);
+  const deskLight = new THREE.PointLight('#ffb36b', 1.25, 4, 2);
+  deskLight.position.set(-0.3, 1.2, -0.55);
+  scene.add(deskLight);
+  addFire(lamp.userData.flame, deskLight, 0.4);
+
+  // Lampefod ved opslagsvæggen med en lerlampe, der lyser tekstpladen op
+  const standMat = new THREE.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.9 });
+  const lampPost = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 1.3, 8), standMat);
+  lampPost.position.set(-1.05, 0.65, -1.95);
+  const lampPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.08, 0.03, 12), standMat);
+  lampPlate.position.set(-1.05, 1.31, -1.95);
+  scene.add(lampPost, lampPlate);
+  const lamp2 = oilLamp('#9c5f36');
+  lamp2.position.set(-1.05, 1.325, -1.95);
+  lamp2.rotation.y = -0.3;
+  lamp2.scale.setScalar(1.3);
+  scene.add(lamp2);
+  const panelLight = new THREE.PointLight('#ffb36b', 1.6, 5, 2);
+  panelLight.position.set(-0.85, 1.55, -1.55);
+  scene.add(panelLight);
+  addFire(lamp2.userData.flame, panelLight, 2.2);
+
+  // Lerlamper i gården uden eget lys (kun flammen), så vi holder os på fire PointLights
+  [[-5.4, 0.42, -2.0], [5.4, 0.42, -3.1]].forEach(([x, y, z], i) => {
+    const l = oilLamp(i ? '#9c5f36' : '#b7774a');
+    l.position.set(x, y, z);
+    l.rotation.y = i * 2;
+    l.scale.setScalar(1.5);
+    scene.add(l);
+    addFire(l.userData.flame, null, 7 + i);
+  });
+
+  // Kaldes hver frame fra game-loopet: flammerne flakker roligt
+  const update = (dt, time) => {
+    for (const f of flickers) {
+      const k = flicker(time, f.seed);
+      if (f.light) f.light.intensity = f.base * k;
+      const b = f.flame.userData.base;
+      f.flame.userData.outer.scale.set(b * (2 - k), b * 1.6 * k * k, b * (2 - k));
+    }
+  };
+
   return {
+    update,
     deskTopY: 0.75,
     anchors: {
       question: new THREE.Vector3(0, 0.98, -1.0),
