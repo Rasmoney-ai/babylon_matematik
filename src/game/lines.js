@@ -19,6 +19,7 @@ export const LINES = {
     title: 'Pladsen til venstre',
     text: 'Se godt efter: der står noget på pladsen til venstre. Dér er hver kile ikke 1, men 60!',
   },
+  spoergsmaal: { title: 'Hvilket tal står der?', text: 'Læs tavlen og peg på det rigtige tal.' },
   hint_kiler: { title: 'Prøv igen', text: 'Tæl de lodrette kiler. Hver kile er 1.' },
   hint_vinkler: { title: 'Prøv igen', text: 'En vinkel ‹ er 10. En lodret kile er 1. Tæl vinklerne først.' },
   hint_60: { title: 'Prøv igen', text: 'Se på pladsen til venstre: dér er hver kile 60, ikke 1!' },
@@ -34,4 +35,7 @@ export const LINES = {
 /** Hvilken intro der hører til hvert trin (vises første gang trinnet dukker op). */
 export const STAGE_INTRO = { A: 'intro_kiler', B: 'intro_vinkler', C: 'intro_60' };
 export const STAGE_HINT = { A: 'hint_kiler', B: 'hint_vinkler', C: 'hint_60', D: 'hint_60' };
+/** Tekst på knap-brikker (ingen lyd). */
+export const BUTTONS = { start: 'BEGYND', igen: 'IGEN' };
+
 export const PRAISE = ['rigtigt_1', 'rigtigt_2', 'rigtigt_3'];

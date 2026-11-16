@@ -1,7 +1,7 @@
 // Bane 1: "Læs tavlen" – eleven læser et kileskrift-tal og vælger det rigtige arabertal.
 import { createQuestionTablet, createToken, createPanel } from '../objects/tablets.js';
 import { PLAN, makeQuestion, explain } from './questions.js';
-import { LINES, STAGE_INTRO, STAGE_HINT, PRAISE } from './lines.js';
+import { LINES, STAGE_INTRO, STAGE_HINT, PRAISE, BUTTONS } from './lines.js';
 import { sfx, speak, audioContext } from '../core/sound.js';
 
 export class Level1 {
@@ -39,7 +39,7 @@ export class Level1 {
     this.startBtn.group.position.set(anchors.tokens.x, anchors.tokens.y, anchors.tokens.z);
     this.startBtn.group.rotation.x = -1.05;
     this.startBtn.group.scale.setScalar(1.3);
-    this.startBtn.setText('BEGYND');
+    this.startBtn.setText(BUTTONS.start);
     scene.add(this.startBtn.group);
     interaction.add(this.startBtn.group, {
       onSelect: () => { audioContext(); sfx.tap(); this.start(); },
@@ -81,7 +81,7 @@ export class Level1 {
       this.seenStages.add(stage);
       this.say(intro, '', this.progress());
     } else {
-      this.panel.setText('Hvilket tal står der?', 'Læs tavlen og peg på det rigtige tal.', this.progress());
+      this.say('spoergsmaal', '', this.progress());
     }
     this.pulse(this.tablet.group, 0.06);
   }
@@ -121,7 +121,7 @@ export class Level1 {
     this.tokens.forEach((t) => { t.group.visible = false; });
     this.tablet.blank();
     this.say('faerdig');
-    this.startBtn.setText('IGEN');
+    this.startBtn.setText(BUTTONS.igen);
     this.startBtn.group.visible = true;
   }
 

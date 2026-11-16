@@ -11,6 +11,7 @@ Format: `.mp3`. Hold dem korte.
 | `intro_kiler.mp3` | Kiler tæller 1 – Hver lodret kile er 1. Tæl kilerne på tavlen og vælg det rigtige tal. |
 | `intro_vinkler.mp3` | Vinkler tæller 10 – Nu kommer vinklen ‹. Den er 10. Tæl vinklerne først, så kilerne. |
 | `intro_60.mp3` | Pladsen til venstre – Se godt efter: der står noget på pladsen til venstre. Dér er hver kile ikke 1, men 60! |
+| `spoergsmaal.mp3` | Hvilket tal står der? – Læs tavlen og peg på det rigtige tal. |
 | `hint_kiler.mp3` | Prøv igen – Tæl de lodrette kiler. Hver kile er 1. |
 | `hint_vinkler.mp3` | Prøv igen – En vinkel ‹ er 10. En lodret kile er 1. Tæl vinklerne først. |
 | `hint_60.mp3` | Prøv igen – Se på pladsen til venstre: dér er hver kile 60, ikke 1! |
