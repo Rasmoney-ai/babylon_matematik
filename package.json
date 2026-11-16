@@ -1,0 +1,11 @@
+{
+  "name": "babylon_matematik",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Immersiv matematik i det gamle Babylon – WebXR og browser",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "npx --yes serve -l 8080 ."
+  }
+}

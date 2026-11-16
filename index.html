@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Tavlehuset i Babylon</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1b120a; }
+    canvas { display: block; touch-action: none; }
+    #hjaelp {
+      position: fixed; left: 16px; bottom: 16px; max-width: 360px;
+      padding: 10px 14px; border-radius: 8px;
+      background: rgba(30, 18, 8, 0.72); color: #f3e2c4;
+      font: 14px/1.45 Georgia, serif; pointer-events: none;
+    }
+    #hjaelp b { color: #ffd27a; }
+    body.in-vr #hjaelp { display: none; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="hjaelp">
+    <b>Tavlehuset i Babylon</b><br>
+    Træk med musen for at se dig omkring · <b>WASD</b> for at gå · Klik på lertavlerne.<br>
+    Har du et VR-headset, så tryk <b>ENTER VR</b>.
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
