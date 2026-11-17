@@ -60,6 +60,7 @@ export class LevelManager {
     const panel = createPanel();
     panel.group.position.copy(st.anchors.panel);
     panel.group.rotation.y = st.anchors.panelYaw || 0;
+    panel.group.scale.setScalar(st.anchors.panelScale || 1);
     group.add(panel.group);
 
     const mkButton = (text, dx, seed, onSelect) => {
@@ -78,8 +79,47 @@ export class LevelManager {
     const ui = { group, panel };
     ui.next = mkButton(BUTTONS.naeste, 0.36, 31, () => { const n = this.nextOf(this.active?.def.id); if (n) this.open(n.id); });
     ui.home = mkButton(BUTTONS.gaarden, -0.36, 32, () => this.home());
+
+    // Lille "forlad banen"-brik, der hænger under tekstpladens venstre hjørne.
+    // Den sidder langt fra banens egne brikker på bordet, er mindre og mørkere, og den
+    // kræver to tryk, så den ikke trykkes ved et uheld. Vises kun, mens en bane er i gang.
+    const leave = createLabelToken(33, 0.34, 0.095);
+    leave.setText(BUTTONS.forlad);
+    leave.body.material.color.set('#7d5a3c');
+    leave.group.position.set(-0.42, -0.31 - 0.1, 0);
+    const cordMat = new THREE.MeshBasicMaterial({ color: '#2a1a0e' });
+    [-0.13, 0.13].forEach((dx) => {
+      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.05, 4), cordMat);
+      cord.position.set(dx, 0.07, -0.01);
+      cord.raycast = () => {};
+      leave.group.add(cord);
+    });
+    leave.group.visible = false;
+    panel.group.add(leave.group);
+    this.interaction.add(leave.group, {
+      onSelect: () => this.pressLeave(ui),
+      onHover: (on) => leave.setHover(on),
+    });
+    ui.leave = leave;
+    ui.leaveArmed = 0;          // > 0: sekunder tilbage, hvor et tryk mere sender eleven hjem
     this.uis.set(stationId, ui);
     return ui;
+  }
+
+  /** Første tryk på "forlad"-brikken beder om et tryk mere; andet tryk går til gården. */
+  pressLeave(ui) {
+    if (this.busy || !this.active) return;
+    audioContext(); sfx.tap();
+    if (ui.leaveArmed > 0) { this.disarmLeave(ui); this.home(); return; }
+    ui.leaveArmed = 4;
+    ui.leave.setText(BUTTONS.forladIgen);
+    ui.leave.face.material.emissive.set(0x663311);
+  }
+
+  disarmLeave(ui) {
+    ui.leaveArmed = 0;
+    ui.leave.setText(BUTTONS.forlad);
+    ui.leave.face.material.emissive.set(0x000000);
   }
 
   /** Vis en replik på en stations tekstplade og afspil lydfilen, hvis den findes. */
@@ -189,6 +229,15 @@ export class LevelManager {
 
   update(dt) {
     this.fade.update(dt);
+    // "Forlad"-brikken: kun på den aktive banes station, og ikke når slut-knapperne vises
+    for (const [id, ui] of this.uis) {
+      const on = !!this.active && this.active.def.station === id && !ui.home.group.visible && !this.busy;
+      ui.leave.group.visible = on;
+      if (ui.leaveArmed > 0) {
+        ui.leaveArmed -= dt;
+        if (ui.leaveArmed <= 0 || !on) this.disarmLeave(ui);
+      }
+    }
     this.active?.level.update(dt * this.timeScale);
   }
 }

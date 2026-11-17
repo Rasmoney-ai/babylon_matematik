@@ -36,6 +36,26 @@ Findes filen ikke, vises kun teksten. Format: `.mp3`. Hold dem korte.
 | `hyrde_spor.mp3` | Spor i din verden – Når du sætter streger for at tælle, eller tæller på fingrene, gør du det samme: én for hver. |
 | `hyrde_bro.mp3` | Men hvad nu … – … hvis der er rigtig mange får? Krukken bliver hurtigt fuld. Det finder Købmanden en løsning på. |
 
+## Bane 2: Købmanden
+
+| Fil | Tekst |
+|---|---|
+| `koebmand_problem.mp3` | Hvor mange er der? – En stor flok er talt med lerkugler. Kan du se, hvor mange der er? Det kan købmanden heller ikke. |
+| `koebmand_ide.mp3` | Byt ti til én – Købmanden har en idé: ti små kugler byttes til én kegle. Peg på skålen for at bytte. |
+| `koebmand_bytter.mp3` | Ti bliver til én – Bliv ved, så længe der er ti kugler at bytte. |
+| `koebmand_samlet.mp3` | Nu kan man se det! – Tre kegler og fire kugler: 34. Det kan man se med ét blik. At samle i bundter på ti er idéen bag vores egne tiere. |
+| `koebmand_brod.mp3` | Del brødet – Købmanden skal dele 10 brød ligeligt mellem sine arbejdere. Hvor mange arbejdere? Peg på en brik. |
+| `koebmand_gaar_op.mp3` | Det går op! – Alle får lige mange. |
+| `koebmand_rest.mp3` | Brød til overs – Der er brød til overs – det giver ballade! |
+| `koebmand_ti_svaer.mp3` | 10 er besværligt – Ti brød kan kun deles ligeligt mellem 2 eller 5. Købmanden prøver noget andet: en bakke med 60 brød. |
+| `koebmand_60.mp3` | 60 brød – Del de 60 brød mellem arbejderne. Prøv forskellige antal. |
+| `koebmand_udfordring.mp3` | Det går op igen! – Kan du finde en deling, der IKKE går op? |
+| `koebmand_7.mp3` | Den gik ikke op! – Godt fundet. 60 er ikke magisk – men det kan deles på rigtig mange måder. |
+| `koebmand_hvorfor60.mp3` | Bundter på 60 – Babylonierne samlede i bundter på 60, ikke på 10. Forskerne tror, det var, fordi 60 er så let at dele. Men ingen ved det helt sikkert. |
+| `koebmand_spor.mp3` | Spor i din verden – En time har 60 minutter. Se hvor let den er at dele: en halv time, et kvarter, en tredjedel. |
+| `koebmand_kvarter.mp3` | Spor i din verden – Hver gang du siger »et kvarter«, regner du som en babylonier. |
+| `koebmand_bro.mp3` | Men hvordan … – … skriver man så store tal ned i ler? Det lærer du hos Skriveren. |
+
 ## Bane 3: Skriveren
 
 | Fil | Tekst |

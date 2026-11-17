@@ -94,6 +94,69 @@ export const LINES = {
     text: '… hvis der er rigtig mange får? Krukken bliver hurtigt fuld. Det finder Købmanden en løsning på.',
   },
 
+  // --- Bane 2: Købmanden (gruppering, og hvorfor 60 er godt at dele med) ----------------
+  // Tal er tilladt her, men hold dem få og store.
+  koebmand_problem: {
+    title: 'Hvor mange er der?',
+    text: 'En stor flok er talt med lerkugler. Kan du se, hvor mange der er? Det kan købmanden heller ikke.',
+  },
+  koebmand_ide: {
+    title: 'Byt ti til én',
+    text: 'Købmanden har en idé: ti små kugler byttes til én kegle. Peg på skålen for at bytte.',
+  },
+  koebmand_bytter: {
+    title: 'Ti bliver til én',
+    text: 'Bliv ved, så længe der er ti kugler at bytte.',
+  },
+  koebmand_samlet: {
+    title: 'Nu kan man se det!',
+    text: 'Tre kegler og fire kugler: 34. Det kan man se med ét blik. At samle i bundter på ti er idéen bag vores egne tiere.',
+  },
+  koebmand_brod: {
+    title: 'Del brødet',
+    text: 'Købmanden skal dele 10 brød ligeligt mellem sine arbejdere. Hvor mange arbejdere? Peg på en brik.',
+  },
+  koebmand_gaar_op: {
+    title: 'Det går op!',
+    text: 'Alle får lige mange.',
+  },
+  koebmand_rest: {
+    title: 'Brød til overs',
+    text: 'Der er brød til overs – det giver ballade!',
+  },
+  koebmand_ti_svaer: {
+    title: '10 er besværligt',
+    text: 'Ti brød kan kun deles ligeligt mellem 2 eller 5. Købmanden prøver noget andet: en bakke med 60 brød.',
+  },
+  koebmand_60: {
+    title: '60 brød',
+    text: 'Del de 60 brød mellem arbejderne. Prøv forskellige antal.',
+  },
+  koebmand_udfordring: {
+    title: 'Det går op igen!',
+    text: 'Kan du finde en deling, der IKKE går op?',
+  },
+  koebmand_7: {
+    title: 'Den gik ikke op!',
+    text: 'Godt fundet. 60 er ikke magisk – men det kan deles på rigtig mange måder.',
+  },
+  koebmand_hvorfor60: {
+    title: 'Bundter på 60',
+    text: 'Babylonierne samlede i bundter på 60, ikke på 10. Forskerne tror, det var, fordi 60 er så let at dele. Men ingen ved det helt sikkert.',
+  },
+  koebmand_spor: {
+    title: 'Spor i din verden',
+    text: 'En time har 60 minutter. Se hvor let den er at dele: en halv time, et kvarter, en tredjedel.',
+  },
+  koebmand_kvarter: {
+    title: 'Spor i din verden',
+    text: 'Hver gang du siger »et kvarter«, regner du som en babylonier.',
+  },
+  koebmand_bro: {
+    title: 'Men hvordan …',
+    text: '… skriver man så store tal ned i ler? Det lærer du hos Skriveren.',
+  },
+
   // --- Bane 3: Skriveren (pladsværdi i 60-talssystemet) ----------------------------
   skriver_velkommen: {
     title: 'Velkommen til tavlehuset',
@@ -149,4 +212,30 @@ export const BUTTONS = {
   lukInd: 'LUK FÅRENE IND',
   proevIgen: 'PRØV IGEN',
   videre: 'VIDERE',
+  // Lille brik under tekstpladen på alle stationer: forlad banen midtvejs (to tryk)
+  forlad: '‹ TIL GÅRDEN',
+  forladIgen: 'TRYK IGEN',
 };
+
+// --- Købmanden: korte, dynamiske tekster med tal (ingen lydfil, ligesom explain()) ------
+/** Fx "20 til hver." eller "3 til hver, 1 til overs." */
+export function shareText({ each, rest }) {
+  return rest ? `${each} til hver, ${rest} til overs.` : `${each} til hver.`;
+}
+/** Fx "Prøv også 3 og 4." eller "Prøv også 4." */
+export function tryAlsoText(missing) {
+  return `Prøv også ${missing.join(' og ')}.`;
+}
+/** Små tilføjelser til panelet under delingen. */
+export const KOEBMAND_HINT = {
+  proev34: 'Prøv også 3 eller 4.',
+  klar: 'Peg på VIDERE, når du er klar.',
+  igen: 'Prøv et andet antal.',
+  proevet: 'Prøvet:',
+};
+/** Timeskiven: fremhævet stykke og tekst under skiven. */
+export const HOUR_PARTS = [
+  { minutes: 30, label: 'en halv time = 30 min' },
+  { minutes: 15, label: 'et kvarter = 15 min' },
+  { minutes: 20, label: 'en tredjedel = 20 min' },
+];
