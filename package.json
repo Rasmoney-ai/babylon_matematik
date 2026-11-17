@@ -6,6 +6,7 @@
   "description": "Immersiv matematik i det gamle Babylon – WebXR og browser",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "start": "npx --yes serve -l 8080 ."
+    "start": "npx --yes serve -l 8080 .",
+    "audio-readme": "node tools/audio-readme.mjs"
   }
 }

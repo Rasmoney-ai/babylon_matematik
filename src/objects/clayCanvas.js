@@ -150,3 +150,38 @@ export function wrapText(ctx, text, x, y, maxW, lineH) {
   }
   return y;
 }
+
+/**
+ * Lerbrik med et ord (banenavn eller knap). `sub` er en lille linje under (fx "kommer snart"),
+ * og `done` tegner et lille blåt segl i hjørnet, når banen er gennemført.
+ */
+export function drawLabelToken(ctx, w, h, { title, sub = '', done = false, seed = 7 }) {
+  paintClay(ctx, w, h, seed, '#d1a674');
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  let size = h * (sub ? 0.36 : 0.44);
+  const font = (s) => `700 ${Math.round(s)}px Georgia, serif`;
+  ctx.font = font(size);
+  while (ctx.measureText(title).width > w * (done ? 0.72 : 0.86) && size > 8) { size *= 0.93; ctx.font = font(size); }
+  const ty = sub ? h * 0.4 : h / 2 + 2;
+  ctx.fillStyle = RIM; ctx.fillText(title, w / 2 + 2, ty + 2);
+  ctx.fillStyle = INK; ctx.fillText(title, w / 2, ty);
+  if (sub) {
+    ctx.font = `italic ${Math.round(h * 0.2)}px Georgia, serif`;
+    ctx.fillStyle = 'rgba(70,40,18,0.75)';
+    ctx.fillText(sub, w / 2, h * 0.75);
+  }
+  if (done) {
+    // Segl: blå glaseret knap med guldkant og en lille stjerne (som rosetterne på porten)
+    const r = h * 0.17, cx = w - r * 1.35, cy = r * 1.35;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#2a5aa6'; ctx.fill();
+    ctx.lineWidth = r * 0.22; ctx.strokeStyle = '#e0b04a'; ctx.stroke();
+    ctx.fillStyle = '#f2d27a';
+    ctx.beginPath();
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2 - Math.PI / 2, rr = i % 2 ? r * 0.28 : r * 0.68;
+      ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+}

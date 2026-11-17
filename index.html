@@ -8,13 +8,16 @@
     html, body { margin: 0; height: 100%; overflow: hidden; background: #1b120a; }
     canvas { display: block; touch-action: none; }
     #hjaelp {
-      position: fixed; left: 16px; bottom: 16px; max-width: 360px;
-      padding: 10px 14px; border-radius: 8px;
-      background: rgba(30, 18, 8, 0.72); color: #f3e2c4;
-      font: 14px/1.45 Georgia, serif; pointer-events: none;
+      /* Øverst til venstre og lille, så den ikke dækker lerbrikkerne nederst */
+      position: fixed; left: 12px; top: 12px; max-width: 300px;
+      padding: 7px 11px; border-radius: 7px;
+      background: rgba(30, 18, 8, 0.6); color: #f3e2c4;
+      font: 12px/1.4 Georgia, serif; pointer-events: none;
     }
     #hjaelp b { color: #ffd27a; }
     body.in-vr #hjaelp { display: none; }
+    /* VR-knappen øverst til højre, så den ikke dækker lerbrikkerne nederst i billedet */
+    #VRButton { bottom: auto !important; top: 16px !important; left: auto !important; right: 16px !important; }
   </style>
   <script type="importmap">
     {

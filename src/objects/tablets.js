@@ -1,7 +1,7 @@
 // 3D-objekter: lertavler, svarbrikker og tekstplade. Alle tegnes via CanvasTexture.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { drawNumberTablet, drawNumberToken, paintClay, wrapText } from './clayCanvas.js';
+import { drawNumberTablet, drawNumberToken, drawLabelToken, paintClay, wrapText } from './clayCanvas.js';
 
 const clayBody = (color = '#b88a5a') =>
   new THREE.MeshStandardMaterial({ color, roughness: 0.95, metalness: 0 });
@@ -49,6 +49,25 @@ export function createToken(seed = 1) {
   };
   slab.setDim = (on) => {
     slab.face.material.color.set(on ? 0x777777 : 0xffffff);
+  };
+  return slab;
+}
+
+/**
+ * Bredere brik med et ord: banevælger og knapper (NÆSTE, TIL GÅRDEN, VIDERE …).
+ * setLabel({ title, sub, done }) tegner den om.
+ */
+export function createLabelToken(seed = 1, w = 0.25, h = 0.12) {
+  const slab = makeClaySlab(w, h, 0.035, 512, '#c4935f');
+  slab.setLabel = (opts) => slab.redraw((ctx, cw, ch) => drawLabelToken(ctx, cw, ch, { seed, ...opts }));
+  slab.setText = (t) => slab.setLabel({ title: String(t) });
+  slab.setHover = (on) => {
+    slab.face.material.emissive.set(on ? 0x553311 : 0x000000);
+    slab.group.scale.setScalar(on ? 1.08 : 1);
+  };
+  slab.setDim = (on) => {
+    slab.face.material.color.set(on ? 0x8c8680 : 0xffffff);
+    slab.body.material.color.set(on ? '#8a7866' : '#c4935f');
   };
   return slab;
 }

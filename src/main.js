@@ -1,35 +1,61 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { buildEduba } from './scene/eduba.js';
+import { buildFold } from './scene/fold.js';
 import { createInteraction } from './core/interaction.js';
 import { createDesktopControls } from './core/desktopControls.js';
-import { Level1 } from './game/level1.js';
+import { createFade } from './core/fade.js';
+import { LevelManager } from './game/levels.js';
+import { Hub } from './game/hub.js';
+import { HyrdeLevel } from './game/hyrde.js';
+import { SkriverLevel } from './game/skriver.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-// Ingen skygger: skumringslyset er blødt, og det sparer ydelse på Quest
+// Ingen shadow maps: skumringslyset er blødt, og bløde "blob"-skygger (scene/shadows.js) er billigere på Quest
 renderer.shadowMap.enabled = false;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
-document.body.appendChild(VRButton.createButton(renderer));
+const vrButton = VRButton.createButton(renderer);
+vrButton.id ||= 'VRButton';        // placeres øverst til højre via CSS i index.html
+document.body.appendChild(vrButton);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 1000);
 camera.position.set(0, 1.55, 0.15);
-const rig = new THREE.Group();   // i VR står eleven i rig'ens nulpunkt foran bordet
+// Eleven står i rig'ens nulpunkt. Skift af station flytter rig'en (i VR og i browser).
+const rig = new THREE.Group();
 rig.add(camera);
 scene.add(rig);
 
+// --- Verden og stationer ---------------------------------------------------------
 const world = buildEduba(scene);
+const stations = { ...world.stations, fold: buildFold(scene, world) };
+
 const interaction = createInteraction({ renderer, camera, rig, dom: renderer.domElement });
-const controls = createDesktopControls({
-  camera, renderer, dom: renderer.domElement,
-  bounds: { minX: -5.3, maxX: 5.3, minZ: -0.2, maxZ: 4.3 },
-});
-const level = new Level1({ scene, interaction, anchors: world.anchors });
+const controls = createDesktopControls({ camera, renderer, dom: renderer.domElement, bounds: stations.gaard.bounds });
+const fade = createFade(camera);
+
+function moveTo(station) {
+  rig.position.copy(station.position);
+  rig.rotation.y = station.yaw;
+  controls.setStation(station);
+  world.setLights(station.lights);   // to af de fire PointLights følger med til stationen
+}
+
+// --- Baner (rækkefølgen her er forløbets rækkefølge) ---------------------------------
+const levels = new LevelManager({ scene, camera, interaction, stations, fade, moveTo });
+levels
+  .register({ id: 'hyrde', station: 'fold', Level: HyrdeLevel })
+  .register({ id: 'koebmand', station: 'gaard', Level: null })      // bygges senere
+  .register({ id: 'skriver', station: 'gaard', Level: SkriverLevel })
+  .register({ id: 'landmaaler', station: 'gaard', Level: null });   // bygges senere
+
+const hub = new Hub({ scene, interaction, levels });
+levels.home();
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -45,10 +71,15 @@ renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.1);
   controls.update(dt);
   interaction.update();
-  level.update(dt);
+  levels.update(dt);
   world.update(dt, clock.elapsedTime);
   renderer.render(scene, camera);
 });
 
-// Til fejlsøgning i konsollen
-window.__babylon = { scene, camera, level };
+// Til fejlsøgning og test i konsollen, fx  __babylon.levels.open('hyrde')
+//   __babylon.levels.timeScale = 6   spoler den aktive bane hurtigere frem
+//   __babylon.level('hyrde')         giver bane-objektet
+window.__babylon = {
+  scene, camera, rig, renderer, levels, hub, stations, controls, interaction,
+  level: (id) => levels.instances.get(id)?.level,
+};

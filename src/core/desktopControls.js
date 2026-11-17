@@ -1,4 +1,6 @@
 // Browser-styring: træk for at kigge, WASD/piletaster for at gå. Slås fra i VR.
+// Kameraet sidder i `rig`, så alt her er i rig'ens lokale koordinater: når eleven
+// flyttes til en ny station, flyttes rig'en, og bevægelsesgrænserne skiftes med setStation().
 export function createDesktopControls({ camera, dom, renderer, bounds }) {
   let yaw = 0, pitch = -0.3;
   let drag = null;
@@ -18,6 +20,15 @@ export function createDesktopControls({ camera, dom, renderer, bounds }) {
   addEventListener('keyup', (e) => keys.delete(e.code));
 
   return {
+    /** Ny station: nulstil kamera og blik, og brug stationens grænser (lokale koordinater). */
+    setStation(station) {
+      bounds = station.bounds;
+      yaw = station.view?.yaw ?? 0;
+      pitch = station.view?.pitch ?? -0.3;
+      if (!renderer.xr.isPresenting) camera.position.set(0, 1.55, 0.15);
+    },
+    /** Til test/skærmbilleder: sæt blikket direkte. */
+    look(y, p) { yaw = y; pitch = p; },
     update(dt) {
       if (renderer.xr.isPresenting) return;
       camera.rotation.set(pitch, yaw, 0, 'YXZ');

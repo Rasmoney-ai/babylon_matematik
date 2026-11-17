@@ -1,101 +1,8 @@
 // Miljøet: gården i tavlehuset (eduba) i Babylon med zigguraten i horisonten.
 // Alt er bygget af simple former og canvas-teksturer – ingen eksterne modeller.
 import * as THREE from 'three';
-
-// --- Teksturer ----------------------------------------------------------------
-function canvasTexture(w, h, paint, repeat = [1, 1]) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
-  paint(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(...repeat);
-  t.anisotropy = 8;
-  return t;
-}
-
-function brickPainter(base, mortar, vary = 18) {
-  return (ctx, w, h) => {
-    ctx.fillStyle = mortar; ctx.fillRect(0, 0, w, h);
-    const rows = 8, bh = h / rows, bw = w / 4;
-    for (let r = 0; r < rows; r++) {
-      const off = (r % 2) * bw / 2;
-      for (let c = -1; c < 5; c++) {
-        const v = (Math.random() - 0.5) * vary;
-        const col = new THREE.Color(base); col.offsetHSL(0, 0, v / 255);
-        ctx.fillStyle = `#${col.getHexString()}`;
-        ctx.fillRect(c * bw + off + 2, r * bh + 2, bw - 4, bh - 4);
-      }
-    }
-  };
-}
-
-const sandPainter = (ctx, w, h) => {
-  ctx.fillStyle = '#d6b483'; ctx.fillRect(0, 0, w, h);
-  for (let i = 0; i < 9000; i++) {
-    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(120,85,45,0.10)' : 'rgba(255,245,220,0.12)';
-    ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2);
-  }
-};
-
-// --- Byggeklodser --------------------------------------------------------------
-const box = (w, h, d, mat) => {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-  m.castShadow = true; m.receiveShadow = true;
-  return m;
-};
-
-function wallSegment(len, height, thick, mat, capMat) {
-  const g = new THREE.Group();
-  const wall = box(len, height, thick, mat);
-  wall.position.y = height / 2;
-  g.add(wall);
-  // Trappeformede tinder, typisk for mesopotamiske mure
-  const n = Math.floor(len / 0.9);
-  for (let i = 0; i < n; i++) {
-    const t = box(0.45, 0.35, thick * 0.9, capMat);
-    t.position.set(-len / 2 + 0.45 + i * (len - 0.9) / Math.max(1, n - 1), height + 0.17, 0);
-    g.add(t);
-  }
-  return g;
-}
-
-function palm(h = 6, lean = 0.3) {
-  const g = new THREE.Group();
-  const trunkMat = new THREE.MeshStandardMaterial({ color: '#7a5a3a', roughness: 1 });
-  const segs = 7;
-  for (let i = 0; i < segs; i++) {
-    const s = new THREE.Mesh(new THREE.CylinderGeometry(0.16 - i * 0.008, 0.2 - i * 0.008, h / segs, 7), trunkMat);
-    const t = i / segs;
-    s.position.set(Math.sin(t * 1.6) * lean * 2, (i + 0.5) * (h / segs), 0);
-    s.rotation.z = -Math.cos(t * 1.6) * lean * 0.5;
-    s.castShadow = true;
-    g.add(s);
-  }
-  const top = new THREE.Vector3(Math.sin(1.6) * lean * 2, h, 0);
-  const leafMat = new THREE.MeshStandardMaterial({ color: '#5b8a34', roughness: 0.8, side: THREE.DoubleSide });
-  for (let i = 0; i < 9; i++) {
-    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.35, 3.2, 4, 1, true), leafMat);
-    leaf.scale.set(1, 1, 0.12);
-    leaf.geometry.translate(0, 1.6, 0);
-    const pivot = new THREE.Group();
-    pivot.position.copy(top);
-    pivot.rotation.y = (i / 9) * Math.PI * 2;
-    leaf.rotation.z = Math.PI / 2 - 0.35 - Math.random() * 0.3;
-    leaf.castShadow = true;
-    pivot.add(leaf);
-    g.add(pivot);
-  }
-  return g;
-}
-
-function jar(color = '#a8683d') {
-  const pts = [[0, 0], [0.12, 0.01], [0.2, 0.12], [0.22, 0.3], [0.16, 0.45], [0.08, 0.5], [0.09, 0.56], [0.1, 0.58]]
-    .map(([x, y]) => new THREE.Vector2(x, y));
-  const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 20), new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
-  m.castShadow = true; m.receiveShadow = true;
-  return m;
-}
+import { canvasTexture, brickPainter, sandPainter, box, wallSegment, palm, jar, flame, oilLamp, torch, flicker } from './props.js';
+import { blobShadow, rectShadow, wallFootShadow } from './shadows.js';
 
 function ziggurat(mudMat, glazeMat) {
   const g = new THREE.Group();
@@ -141,89 +48,6 @@ function ziggurat(mudMat, glazeMat) {
 }
 
 
-// --- Ild og lys i skumringen ---------------------------------------------------
-// Blødt, rundt lysskær bag flammerne (tegnet på canvas, ingen ekstern tekstur)
-let haloTex = null;
-function haloTexture() {
-  if (haloTex) return haloTex;
-  const c = document.createElement('canvas'); c.width = c.height = 64;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, 'rgba(255,200,130,1)');
-  g.addColorStop(0.25, 'rgba(255,150,70,0.45)');
-  g.addColorStop(1, 'rgba(255,120,40,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-  haloTex = new THREE.CanvasTexture(c);
-  haloTex.colorSpace = THREE.SRGBColorSpace;
-  return haloTex;
-}
-
-// Dråbeformet flamme: en varm ydre kappe og en lys kerne. Skaleres med `size`.
-const flameOuterMat = new THREE.MeshBasicMaterial({ color: '#ff8a2e', transparent: true, opacity: 0.9, depthWrite: false, fog: false });
-const flameInnerMat = new THREE.MeshBasicMaterial({ color: '#ffe2a0', fog: false });
-const flameGeo = new THREE.LatheGeometry(
-  [[0, 0], [0.45, 0.12], [0.55, 0.35], [0.42, 0.65], [0.2, 0.9], [0, 1.15]].map(([x, y]) => new THREE.Vector2(x, y)), 10);
-function flame(size = 0.05, halo = 3) {
-  const g = new THREE.Group();
-  const outer = new THREE.Mesh(flameGeo, flameOuterMat);
-  outer.scale.set(size, size * 1.6, size);
-  const inner = new THREE.Mesh(flameGeo, flameInnerMat);
-  inner.scale.set(size * 0.5, size * 0.9, size * 0.5);
-  inner.position.y = size * 0.08;
-  g.add(outer, inner);
-  if (halo) {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: haloTexture(), color: '#ffffff', transparent: true, opacity: 0.35,
-      blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
-    }));
-    s.scale.setScalar(size * halo * 2);
-    s.position.y = size * 0.7;
-    g.add(s);
-  }
-  g.userData.outer = outer;
-  g.userData.base = size;
-  return g;
-}
-
-// Olielampe: lille åben lerskål med en tud, hvor vægen brænder
-function oilLamp(clay = '#a8683d') {
-  const g = new THREE.Group();
-  const pts = [[0, 0], [0.04, 0.0], [0.065, 0.02], [0.07, 0.04], [0.062, 0.045], [0.055, 0.03], [0, 0.028]]
-    .map(([x, y]) => new THREE.Vector2(x, y));
-  const mat = new THREE.MeshStandardMaterial({ color: clay, roughness: 0.9, side: THREE.DoubleSide });
-  const bowl = new THREE.Mesh(new THREE.LatheGeometry(pts, 18), mat);
-  bowl.castShadow = true;
-  const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.02, 0.06, 8), mat);
-  spout.rotation.z = Math.PI / 2 + 0.25; spout.position.set(0.075, 0.035, 0);
-  // Olien i skålen
-  const oil = new THREE.Mesh(new THREE.CircleGeometry(0.055, 16), new THREE.MeshStandardMaterial({ color: '#3a2410', roughness: 0.3 }));
-  oil.rotation.x = -Math.PI / 2; oil.position.y = 0.032;
-  const f = flame(0.022, 4);
-  f.position.set(0.1, 0.05, 0);
-  g.add(bowl, spout, oil, f);
-  g.userData.flame = f;
-  return g;
-}
-
-// Fakkel i en jernholder på muren
-function torch() {
-  const g = new THREE.Group();
-  const iron = new THREE.MeshStandardMaterial({ color: '#2b2622', roughness: 0.6, metalness: 0.5 });
-  const wood = new THREE.MeshStandardMaterial({ color: '#4a3020', roughness: 1 });
-  const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.28), iron);
-  bracket.position.set(0, 0, 0.14);
-  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.022, 0.6, 7), wood);
-  stick.position.set(0, 0.15, 0.28); stick.rotation.x = 0.18;
-  const head = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.04, 0.14, 8), iron);
-  head.position.set(0, 0.47, 0.34);
-  const f = flame(0.08, 3.5);
-  f.position.set(0, 0.52, 0.34);
-  g.add(bracket, stick, head, f);
-  g.userData.flame = f;
-  return g;
-}
-
-// Stjerner: et par hundrede punkter højt på himlen, svagest mod solnedgangen
 function stars(radius = 420) {
   const pos = [], col = [];
   for (let i = 0; i < 520; i++) {
@@ -265,10 +89,6 @@ function crescentMoon() {
   return s;
 }
 
-// Rolig flakken: et par langsomme sinusser oven i hinanden, forskudt per flamme
-function flicker(t, seed) {
-  return 1 + 0.07 * Math.sin(t * 6.1 + seed) + 0.045 * Math.sin(t * 11.3 + seed * 2.7) + 0.025 * Math.sin(t * 23.7 + seed * 5.1);
-}
 
 // --- Selve scenen ----------------------------------------------------------------
 export function buildEduba(scene) {
@@ -367,6 +187,16 @@ export function buildEduba(scene) {
   const nwL = wallSegment(4.4, H, T, mud, mudCap); nwL.position.set(-3.8, 0, -7); scene.add(nwL);
   const nwR = wallSegment(4.4, H, T, mud, mudCap); nwR.position.set(3.8, 0, -7); scene.add(nwR);
 
+  // Svag mørk kant langs murenes fod inde i gården (den mørke side vender mod muren)
+  const foot = (len, x, z, rotY) => { const f = wallFootShadow(len, 0.8, 0.5); f.position.set(x, 0.011, z); f.rotation.y = rotY; scene.add(f); };
+  foot(11.4, 0, 4.7 - 0.4, Math.PI);          // syd: muren ligger mod +z
+  foot(11.4, -5.7 + 0.4, -1, Math.PI / 2);    // vest
+  foot(11.4, 5.7 - 0.4, -1, -Math.PI / 2);    // øst
+  foot(3.9, -3.85, -6.7 + 0.4, 0);            // nord, venstre for porten
+  foot(3.9, 3.85, -6.7 + 0.4, 0);             // nord, højre for porten
+  // Og på ydersiden mod nord, hvor fårefolden ligger
+  [[-3.8, 4.4], [3.8, 4.4]].forEach(([x, len]) => { const f = wallFootShadow(len, 0.9, 0.4); f.position.set(x, 0.011, -7.3 - 0.45); f.rotation.y = Math.PI; scene.add(f); });
+
   // Port i blå glaserede sten, som Ishtar-porten
   const gate = new THREE.Group();
   const pillarL = box(1.1, 4.4, 1.0, glaze); pillarL.position.set(-1.65, 2.2, 0);
@@ -381,6 +211,7 @@ export function buildEduba(scene) {
   }
   gate.position.set(0, 0, -7);
   scene.add(gate);
+  [-1.65, 1.65].forEach((x) => { const s = blobShadow(1.9, 1.8, 0.45); s.position.x = x; gate.add(s); });
 
   // Fakler på muren på hver side af porten (2 PointLights)
   [-2.75, 2.75].forEach((x, i) => {
@@ -410,12 +241,13 @@ export function buildEduba(scene) {
     scene.add(hse);
   }
 
-  // Palmer langs vejen til zigguraten og i gården
-  [[-5, -14], [5.5, -16], [-8, -24], [9, -27], [-4.5, -36], [6, -42], [-12, -18], [13, -20],
+  // Palmer langs vejen til zigguraten og i gården (fårefolden ligger nordvest for porten)
+  [[-9.6, -12.2], [5.5, -16], [-8, -24], [9, -27], [-4.5, -36], [6, -42], [-12, -18], [13, -20],
    [-4.6, 3.6], [4.6, 3.8]].forEach(([x, z], i) => {
     const p = palm(5 + (i % 3), 0.15 + (i % 4) * 0.08);
     p.position.set(x, 0, z);
     p.rotation.y = i * 1.7;
+    p.add(blobShadow(1.1, 1.1, 0.55));
     scene.add(p);
   });
 
@@ -424,11 +256,13 @@ export function buildEduba(scene) {
     const j = jar(i % 2 ? '#9c5f36' : '#b7774a');
     j.position.set(x, 0, z);
     j.scale.setScalar(1 + (i % 3) * 0.3);
+    j.add(blobShadow(0.62, 0.62, 0.6));
     scene.add(j);
   });
   const wood = new THREE.MeshStandardMaterial({ color: '#7b5434', roughness: 0.8 });
   [[-5.4, -2.5], [5.4, -2.5]].forEach(([x, z]) => {
     const b = box(0.5, 0.42, 2.6, wood); b.position.set(x, 0.21, z); scene.add(b);
+    const s = rectShadow(0.8, 2.95, 0.5); s.position.set(x, 0.012, z); scene.add(s);
   });
 
   // Skriverbordet foran eleven
@@ -437,6 +271,11 @@ export function buildEduba(scene) {
   desk.add(top);
   [[-0.68, -0.32], [0.68, -0.32], [-0.68, 0.32], [0.68, 0.32]].forEach(([x, z]) => {
     const leg = box(0.07, 0.72, 0.07, wood); leg.position.set(x, 0.36, z); desk.add(leg);
+  });
+  // Blød skygge under bordpladen + små mørke pletter, hvor benene står
+  const deskShadow = rectShadow(1.75, 1.0, 0.55); desk.add(deskShadow);
+  [[-0.68, -0.32], [0.68, -0.32], [-0.68, 0.32], [0.68, 0.32]].forEach(([x, z]) => {
+    const s = blobShadow(0.2, 0.2, 0.6, 0.013); s.position.set(x, 0.013, z); desk.add(s);
   });
   desk.position.set(0, 0, -0.8);
   scene.add(desk);
@@ -452,12 +291,17 @@ export function buildEduba(scene) {
   scene.add(board);
   [-0.7, 0.7].forEach((x) => {
     const post = box(0.1, 1.62, 0.1, wood); post.position.set(x, 0.81, -2.32); scene.add(post);
+    const s = blobShadow(0.32, 0.32, 0.6); s.position.set(x, 0.012, -2.32); scene.add(s);
   });
+  { const s = rectShadow(1.9, 0.5, 0.35); s.position.set(0, 0.012, -2.3); scene.add(s); }
 
-  // Olielampe på skriverbordet: oplyser opgavetavlen og svarbrikkerne varmt forfra
+  // Olielampe på skriverbordet (bagerste venstre hjørne, fri af tavle og brikker).
+  // Tuden peger skråt ind mod midten, så den ses i profil fra elevens plads.
   const lamp = oilLamp();
-  lamp.position.set(-0.6, 0.75, -0.78);
-  lamp.rotation.y = -0.5;
+  lamp.position.set(-0.6, 0.75, -1.0);
+  lamp.rotation.y = -0.45;
+  lamp.scale.setScalar(1.15);
+  { const s = blobShadow(0.24, 0.17, 0.55, 0.002); s.position.x = 0.02; lamp.add(s); }
   scene.add(lamp);
   const deskLight = new THREE.PointLight('#ffb36b', 1.25, 4, 2);
   deskLight.position.set(-0.3, 1.2, -0.55);
@@ -468,9 +312,10 @@ export function buildEduba(scene) {
   const standMat = new THREE.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.9 });
   const lampPost = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 1.3, 8), standMat);
   lampPost.position.set(-1.05, 0.65, -1.95);
-  const lampPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.08, 0.03, 12), standMat);
+  const lampPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.1, 0.03, 14), standMat);
   lampPlate.position.set(-1.05, 1.31, -1.95);
   scene.add(lampPost, lampPlate);
+  { const s = blobShadow(0.42, 0.42, 0.6); s.position.set(-1.05, 0.012, -1.95); scene.add(s); }
   const lamp2 = oilLamp('#9c5f36');
   lamp2.position.set(-1.05, 1.325, -1.95);
   lamp2.rotation.y = -0.3;
@@ -487,6 +332,7 @@ export function buildEduba(scene) {
     l.position.set(x, y, z);
     l.rotation.y = i * 2;
     l.scale.setScalar(1.5);
+    l.add(blobShadow(0.2, 0.16, 0.5, 0.002));
     scene.add(l);
     addFire(l.userData.flame, null, 7 + i);
   });
@@ -501,13 +347,43 @@ export function buildEduba(scene) {
     }
   };
 
-  return {
-    update,
-    deskTopY: 0.75,
+  // De to "flytbare" lys følger den aktive station (se setLights). Faklerne bliver i gården.
+  const movable = { desk: deskLight, panel: panelLight };
+  const lightsAt = (defs) => {
+    for (const [key, d] of Object.entries(defs)) {
+      const l = movable[key];
+      l.position.copy(d.position);
+      l.distance = d.distance;
+      flickers.find((f) => f.light === l).base = d.intensity;
+    }
+  };
+  const snapshot = (l) => ({ position: l.position.clone(), intensity: l.intensity, distance: l.distance });
+
+  // Gården er startstedet. Stationens koordinater er verdenskoordinater (ingen drejning).
+  const station = {
+    id: 'gaard',
+    position: new THREE.Vector3(0, 0, 0),
+    yaw: 0,
+    bounds: { minX: -5.3, maxX: 5.3, minZ: -0.2, maxZ: 4.3 },
+    view: { yaw: 0, pitch: -0.3 },
+    lights: { desk: snapshot(deskLight), panel: snapshot(panelLight) },
     anchors: {
       question: new THREE.Vector3(0, 0.98, -1.0),
       tokens: new THREE.Vector3(0, 0.78, -0.62),
       panel: new THREE.Vector3(0, 1.62, -2.25),
+      // Knapper ved banens slutning og banevælgeren ligger på bordets forkant
+      buttons: new THREE.Vector3(0, 0.78, -0.62),
+      buttonTilt: -1.05,
+      hub: new THREE.Vector3(0, 0.775, -0.6),
     },
+  };
+
+  return {
+    update,
+    deskTopY: 0.75,
+    stations: { gaard: station },
+    setLights: lightsAt,
+    addFire,
+    materials: { mud, mudCap, wood },
   };
 }

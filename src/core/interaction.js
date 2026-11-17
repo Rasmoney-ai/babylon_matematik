@@ -8,17 +8,25 @@ export function createInteraction({ renderer, camera, rig, dom }) {
   const hoveredBy = new Map();        // kilde -> obj
   let lastHovered = new Set();
   const mouse = { ndc: new THREE.Vector2(), inside: false, down: null };
+  let enabled = true;   // slås fra under fade, så man ikke klikker i blinde
 
   function owner(o) {
     while (o) { if (targets.has(o)) return o; o = o.parent; }
     return null;
   }
+  // Et objekt kan kun vælges, hvis det og alle dets forældre er synlige
+  // (en bane, der ikke er aktiv, skjuler sin rod-gruppe).
+  function shown(o) {
+    for (; o; o = o.parent) if (!o.visible) return false;
+    return true;
+  }
   function pick() {
-    const hits = raycaster.intersectObjects([...targets.keys()], true);
-    for (const h of hits) { const o = owner(h.object); if (o && o.visible) return o; }
+    if (!enabled) return null;
+    const hits = raycaster.intersectObjects([...targets.keys()].filter(shown), true);
+    for (const h of hits) { const o = owner(h.object); if (o) return o; }
     return null;
   }
-  function select(o) { if (o) targets.get(o).onSelect?.(o); }
+  function select(o) { if (o) targets.get(o)?.onSelect?.(o); }
 
   // --- Mus / touch --------------------------------------------------------------
   function setNdc(e) {
@@ -63,7 +71,7 @@ export function createInteraction({ renderer, camera, rig, dom }) {
     if (renderer.xr.isPresenting) {
       controllers.forEach((c, i) => {
         rayFrom(c);
-        const hits = raycaster.intersectObjects([...targets.keys()], true);
+        const hits = enabled ? raycaster.intersectObjects([...targets.keys()].filter(shown), true) : [];
         const o = hits.length ? owner(hits[0].object) : null;
         c.userData.line.scale.z = hits.length ? hits[0].distance : 3;
         if (o) hoveredBy.set(`c${i}`, o);
@@ -83,6 +91,7 @@ export function createInteraction({ renderer, camera, rig, dom }) {
   return {
     add(obj, handlers) { targets.set(obj, handlers); },
     remove(obj) { targets.delete(obj); },
+    setEnabled(on) { enabled = on; },
     update,
   };
 }

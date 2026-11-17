@@ -1,18 +1,17 @@
-// Bane 1: "Læs tavlen" – eleven læser et kileskrift-tal og vælger det rigtige arabertal.
-import { createQuestionTablet, createToken, createPanel } from '../objects/tablets.js';
+// Bane 3: Skriveren – "Læs tavlen". Eleven læser et kileskrift-tal og vælger det rigtige arabertal.
+// Står ved skriverbordet i gården. Pladsværdi i 60-talssystemet.
+import { createQuestionTablet, createToken } from '../objects/tablets.js';
 import { PLAN, makeQuestion, explain } from './questions.js';
-import { LINES, STAGE_INTRO, STAGE_HINT, PRAISE, BUTTONS } from './lines.js';
-import { sfx, speak, audioContext } from '../core/sound.js';
+import { STAGE_INTRO, STAGE_HINT, PRAISE, BUTTONS } from './lines.js';
+import { sfx, audioContext } from '../core/sound.js';
 
-export class Level1 {
-  constructor({ scene, interaction, anchors }) {
+export class SkriverLevel {
+  constructor(ctx) {
+    this.ctx = ctx;
+    const { interaction, root: scene } = ctx;
+    const anchors = ctx.station.anchors;
     this.interaction = interaction;
     this.anims = [];
-
-    // Tekstplade
-    this.panel = createPanel();
-    this.panel.group.position.copy(anchors.panel);
-    scene.add(this.panel.group);
 
     // Opgavetavle, lænet let bagover på stativet
     this.tablet = createQuestionTablet();
@@ -42,23 +41,36 @@ export class Level1 {
     this.startBtn.setText(BUTTONS.start);
     scene.add(this.startBtn.group);
     interaction.add(this.startBtn.group, {
-      onSelect: () => { audioContext(); sfx.tap(); this.start(); },
+      onSelect: () => { audioContext(); sfx.tap(); this.play(); },
       onHover: (on) => this.startBtn.setHover(on),
     });
-
-    this.say('velkommen');
   }
 
-  say(id, extraText = '', footer = '') {
-    const l = LINES[id];
-    const body = [l.text, extraText].filter(Boolean).join(' ');
-    this.panel.setText(l.title, body, footer);
-    speak(id);
-  }
+  say(id, extraText = '', footer = '') { this.ctx.say(id, extraText, footer); }
 
   progress() { return `Tavle ${this.round + 1} af ${PLAN.length}`; }
 
+  /** Banen vælges: vis velkomsten og BEGYND-brikken. */
   start() {
+    this.active = true;
+    this.q = null;
+    this.anims = [];
+    this.tokens.forEach((t) => { t.group.visible = false; });
+    this.tablet.blank();
+    this.startBtn.setText(BUTTONS.start);
+    this.startBtn.group.visible = true;
+    this.say('skriver_velkommen');
+  }
+
+  stop() {
+    this.active = false;
+    this.q = null;
+    clearTimeout(this.timer);
+  }
+
+  /** BEGYND/IGEN: start en runde med otte tavler. */
+  play() {
+    this.ctx.manager.hideButtons(this.ctx.station.id);
     this.round = 0;
     this.seenStages = new Set();
     this.startBtn.group.visible = false;
@@ -81,7 +93,7 @@ export class Level1 {
       this.seenStages.add(stage);
       this.say(intro, '', this.progress());
     } else {
-      this.say('spoergsmaal', '', this.progress());
+      this.say('skriver_spoergsmaal', '', this.progress());
     }
     this.pulse(this.tablet.group, 0.06);
   }
@@ -99,7 +111,8 @@ export class Level1 {
       this.glow(t);
       const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
       this.say(praise, explain(this.q), this.progress());
-      setTimeout(() => this.next(), 3200);
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => { if (this.active) this.next(); }, 3200);
     } else {
       sfx.wrong();
       t.used = true; t.setDim(true); t.setHover(false);
@@ -120,9 +133,10 @@ export class Level1 {
     this.q = null;
     this.tokens.forEach((t) => { t.group.visible = false; });
     this.tablet.blank();
-    this.say('faerdig');
+    this.say('skriver_faerdig');
     this.startBtn.setText(BUTTONS.igen);
     this.startBtn.group.visible = true;
+    this.ctx.complete();
   }
 
   // --- Små animationer -------------------------------------------------------
