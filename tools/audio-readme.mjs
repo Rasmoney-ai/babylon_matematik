@@ -33,6 +33,6 @@ if (rest.length) {
   md += `\n## Andre\n\n| Fil | Tekst |\n|---|---|\n`;
   for (const id of rest) md += `| \`${id}.mp3\` | ${esc(text(LINES[id]))} |\n`;
 }
-md += `\nForklaringen efter et rigtigt svar hos Skriveren (fx "60 + 15 = 75") bygges med tallene og har derfor ingen lydfil. Den vises kun som tekst.\n`;
+md += `\nKorte tekster med tal (fx "60 + 15 = 75" hos Skriveren eller "Rebet: 2 + 6 + 2 + 6 = 16 skridt." hos Landmåleren) bygges med tallene og har derfor ingen lydfil. De vises kun som tekst efter replikken.\n`;
 writeFileSync(new URL('../audio/README.md', import.meta.url), md);
 console.log(`audio/README.md skrevet (${ids.length} replikker)`);

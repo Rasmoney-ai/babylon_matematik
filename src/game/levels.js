@@ -17,11 +17,11 @@ const STORAGE_KEY = 'babylon.fremdrift.v1';
 function loadProgress() {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return new Set(Array.isArray(data.done) ? data.done : []);
-  } catch { return new Set(); }
+    return { done: new Set(Array.isArray(data.done) ? data.done : []), celebrated: !!data.fejret };
+  } catch { return { done: new Set(), celebrated: false }; }
 }
-function saveProgress(done) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ done: [...done] })); } catch { /* fx privat browsing */ }
+function saveProgress(done, celebrated = false) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ done: [...done], fejret: celebrated })); } catch { /* fx privat browsing */ }
 }
 
 export class LevelManager {
@@ -34,7 +34,9 @@ export class LevelManager {
     this.defs = [];
     this.instances = new Map();   // id -> { level, root }
     this.uis = new Map();         // station-id -> { group, panel, next, home }
-    this.done = loadProgress();
+    const saved = loadProgress();
+    this.done = saved.done;
+    this.celebrated = saved.celebrated;   // er finalen i gården vist?
     this.active = null;           // { def, level, root }
     this.stationId = null;
     this.timeScale = 1;           // til test: > 1 spoler banen hurtigere frem
@@ -46,6 +48,11 @@ export class LevelManager {
   def(id) { return this.defs.find((d) => d.id === id); }
   isBuilt(id) { return !!this.def(id)?.Level; }
   isDone(id) { return this.done.has(id); }
+  /** Er alle byggede baner gennemført? */
+  allDone() { return this.defs.every((d) => !d.Level || this.done.has(d.id)); }
+  markCelebrated() { this.celebrated = true; saveProgress(this.done, true); }
+  /** Nulstil fremdriften, så næste elev kan starte forfra. */
+  resetProgress() { this.done.clear(); this.celebrated = false; saveProgress(this.done, false); }
   nextOf(id) { const i = this.defs.findIndex((d) => d.id === id); return this.defs[i + 1] || null; }
 
   /** Stationens tekstplade og slut-knapper (deles af banevælger og baner på samme station). */
@@ -219,12 +226,14 @@ export class LevelManager {
   /** Kaldes af banen, når den er gennemført. */
   complete(id) {
     this.done.add(id);
-    saveProgress(this.done);
+    saveProgress(this.done, this.celebrated);
     const def = this.def(id);
     const ui = this.ui(def.station);
     const next = this.nextOf(id);
     ui.home.group.visible = true;
     ui.next.group.visible = !!next?.Level;
+    // Sidste bane: TIL GÅRDEN står alene midt på bordet
+    ui.home.group.position.x = this.stations[def.station].anchors.buttons.x + (next?.Level ? -0.36 : 0);
   }
 
   update(dt) {

@@ -11,6 +11,7 @@ Findes filen ikke, vises kun teksten. Format: `.mp3`. Hold dem korte.
 |---|---|
 | `gaard_velkommen.mp3` | Tavlehuset i Babylon – Matematik er noget, mennesker fandt på, fordi de havde brug for det. Peg på en lerbrik på bordet for at vælge en bane. Begynd gerne hos Hyrden. |
 | `gaard_kommer_snart.mp3` | Kommer snart – Den bane er ikke bygget endnu. Vælg en af de andre brikker. |
+| `gaard_alle_faerdige.mp3` | Hele rejsen er gennemført – Du har talt som hyrden, samlet i bundter som købmanden, skrevet som skriveren og målt som landmåleren. Peg på en brik for at prøve en bane igen. |
 
 ## Bane 1: Hyrden
 
@@ -71,6 +72,34 @@ Findes filen ikke, vises kun teksten. Format: `.mp3`. Hold dem korte.
 | `skriver_rigtigt_1.mp3` | Rigtigt! |
 | `skriver_rigtigt_2.mp3` | Flot læst! |
 | `skriver_rigtigt_3.mp3` | Præcis! |
-| `skriver_faerdig.mp3` | Første prøve bestået – Du kan læse babylonske tal! Læreren er tilfreds. Peg på IGEN for nye tavler eller TIL GÅRDEN for at vælge en anden bane. |
+| `skriver_faerdig.mp3` | Første prøve bestået – Du kan læse babylonske tal! Læreren er tilfreds. Peg på NÆSTE for at møde Landmåleren, eller IGEN for nye tavler. |
 
-Forklaringen efter et rigtigt svar hos Skriveren (fx "60 + 15 = 75") bygges med tallene og har derfor ingen lydfil. Den vises kun som tekst.
+## Bane 4: Landmåleren
+
+| Fil | Tekst |
+|---|---|
+| `landmaaler_problem.mp3` | Hvor er marken? – Floden er gået over sine bredder og har skyllet markskellene væk. Bonden ved ikke, hvor hans mark er, eller hvor meget korn han kan så. Hvad ville du gøre? |
+| `landmaaler_reb.mp3` | Landmålerens reb – Landmåleren har et reb med knuder. Fra knude til knude er der ét skridt. Bondens tavle siger, hvor stor marken var. |
+| `landmaaler_bredde.mp3` | Hvor bred? – Se på bondens tavle. Hvor mange skridt er marken bred? Peg på en brik. |
+| `landmaaler_laengde.mp3` | Hvor lang? – Og hvor mange skridt er den lang? |
+| `landmaaler_hint_tavle.mp3` | Se på tavlen – Bondens tavle viser det. Prøv igen. |
+| `landmaaler_spaendt.mp3` | Rebet er spændt – Nu kan bonden se sin mark igen. Rebet deler den i felter på ét skridt gange ét skridt. |
+| `landmaaler_saa.mp3` | Hvor meget korn? – I hvert felt kan bonden så en håndfuld korn. Så den forreste række: peg på hvert felt. |
+| `landmaaler_raekker.mp3` | Én række er sået – Hvor mange rækker er der i alt? Peg på en brik. |
+| `landmaaler_hint_raekker.mp3` | Tæl rækkerne – Tæl rækkerne fra den forreste og bagud. |
+| `landmaaler_15.mp3` | 15 felter! – 3 rækker med 5 i hver giver 15 felter. Det skriver vi 3 × 5 = 15. |
+| `landmaaler_nyt_reb.mp3` | Ét reb på 16 skridt – Bonden vil hegne en ny mark med et reb på 16 skridt. Tror du, det er lige meget, hvordan rebet ligger? |
+| `landmaaler_proev.mp3` | Prøv! – Vælg, hvor bred marken skal være. Længden følger med, for rebet er det samme. |
+| `landmaaler_form.mp3` | Samme reb |
+| `landmaaler_overraskelse.mp3` | Overraskelse! – Det var ikke lige meget. Samme reb gav 7 felter eller 16 felter! Den firkantede mark giver mest korn. |
+| `landmaaler_ret_gaet.mp3` | Du havde ret! – Samme reb gav 7 felter eller 16 felter. Den firkantede mark giver mest korn. |
+| `landmaaler_forudsig.mp3` | Regn det ud først – Naboens mark er 5 skridt bred og 5 skridt lang. Hvor mange felter er der? Regn det ud, FØR vi sår. |
+| `landmaaler_hint_20.mp3` | 20 er rebet – Rebet rundt om marken er 20 skridt. Men hvor mange felter er der inden for rebet? |
+| `landmaaler_hint_10.mp3` | Ikke helt – 5 + 5 er kun to rækker. Hvor mange rækker med 5 er der? |
+| `landmaaler_rigtigt.mp3` | Lad os se efter – Nu sår vi og ser, om du havde ret. |
+| `landmaaler_pointe.mp3` | Matematik kan spå – Du vidste, at der var 25 felter, før der var sået et eneste frø. Sådan kunne landmåleren fortælle bonden, hvor meget korn han skulle bruge. |
+| `landmaaler_spor.mp3` | Spor i din verden – Samme hegn kan give en hundegård med god plads eller en smal gang. Det gælder også, når man kridter en fodboldbane op. |
+| `landmaaler_kvadratmeter.mp3` | Kvadratmeter – Når man lægger gulv eller maler en væg, tæller man felter på 1 meter gange 1 meter. Dem kalder vi kvadratmeter. |
+| `landmaaler_slut.mp3` | Rejsen er slut – Tælle, samle i bundter, skrive ned og måle: alt sammen fandt mennesker på, fordi de havde brug for det. Nu kan du det også. |
+
+Korte tekster med tal (fx "60 + 15 = 75" hos Skriveren eller "Rebet: 2 + 6 + 2 + 6 = 16 skridt." hos Landmåleren) bygges med tallene og har derfor ingen lydfil. De vises kun som tekst efter replikken.

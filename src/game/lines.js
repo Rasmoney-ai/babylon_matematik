@@ -183,7 +183,107 @@ export const LINES = {
   skriver_rigtigt_3: { title: 'Præcis!', text: '' },
   skriver_faerdig: {
     title: 'Første prøve bestået',
-    text: 'Du kan læse babylonske tal! Læreren er tilfreds. Peg på IGEN for nye tavler eller TIL GÅRDEN for at vælge en anden bane.',
+    text: 'Du kan læse babylonske tal! Læreren er tilfreds. Peg på NÆSTE for at møde Landmåleren, eller IGEN for nye tavler.',
+  },
+
+  // --- Bane 4: Landmåleren (reb, omkreds og areal) ---------------------------------
+  landmaaler_problem: {
+    title: 'Hvor er marken?',
+    text: 'Floden er gået over sine bredder og har skyllet markskellene væk. Bonden ved ikke, hvor hans mark er, eller hvor meget korn han kan så. Hvad ville du gøre?',
+  },
+  landmaaler_reb: {
+    title: 'Landmålerens reb',
+    text: 'Landmåleren har et reb med knuder. Fra knude til knude er der ét skridt. Bondens tavle siger, hvor stor marken var.',
+  },
+  landmaaler_bredde: {
+    title: 'Hvor bred?',
+    text: 'Se på bondens tavle. Hvor mange skridt er marken bred? Peg på en brik.',
+  },
+  landmaaler_laengde: {
+    title: 'Hvor lang?',
+    text: 'Og hvor mange skridt er den lang?',
+  },
+  landmaaler_hint_tavle: {
+    title: 'Se på tavlen',
+    text: 'Bondens tavle viser det. Prøv igen.',
+  },
+  landmaaler_spaendt: {
+    title: 'Rebet er spændt',
+    text: 'Nu kan bonden se sin mark igen. Rebet deler den i felter på ét skridt gange ét skridt.',
+  },
+  landmaaler_saa: {
+    title: 'Hvor meget korn?',
+    text: 'I hvert felt kan bonden så en håndfuld korn. Så den forreste række: peg på hvert felt.',
+  },
+  landmaaler_raekker: {
+    title: 'Én række er sået',
+    text: 'Hvor mange rækker er der i alt? Peg på en brik.',
+  },
+  landmaaler_hint_raekker: {
+    title: 'Tæl rækkerne',
+    text: 'Tæl rækkerne fra den forreste og bagud.',
+  },
+  landmaaler_15: {
+    title: '15 felter!',
+    text: '3 rækker med 5 i hver giver 15 felter. Det skriver vi 3 × 5 = 15.',
+  },
+  landmaaler_nyt_reb: {
+    title: 'Ét reb på 16 skridt',
+    text: 'Bonden vil hegne en ny mark med et reb på 16 skridt. Tror du, det er lige meget, hvordan rebet ligger?',
+  },
+  landmaaler_proev: {
+    title: 'Prøv!',
+    text: 'Vælg, hvor bred marken skal være. Længden følger med, for rebet er det samme.',
+  },
+  landmaaler_form: {
+    title: 'Samme reb',
+    text: '',
+  },
+  landmaaler_overraskelse: {
+    title: 'Overraskelse!',
+    text: 'Det var ikke lige meget. Samme reb gav 7 felter eller 16 felter! Den firkantede mark giver mest korn.',
+  },
+  landmaaler_ret_gaet: {
+    title: 'Du havde ret!',
+    text: 'Samme reb gav 7 felter eller 16 felter. Den firkantede mark giver mest korn.',
+  },
+  landmaaler_forudsig: {
+    title: 'Regn det ud først',
+    text: 'Naboens mark er 5 skridt bred og 5 skridt lang. Hvor mange felter er der? Regn det ud, FØR vi sår.',
+  },
+  landmaaler_hint_20: {
+    title: '20 er rebet',
+    text: 'Rebet rundt om marken er 20 skridt. Men hvor mange felter er der inden for rebet?',
+  },
+  landmaaler_hint_10: {
+    title: 'Ikke helt',
+    text: '5 + 5 er kun to rækker. Hvor mange rækker med 5 er der?',
+  },
+  landmaaler_rigtigt: {
+    title: 'Lad os se efter',
+    text: 'Nu sår vi og ser, om du havde ret.',
+  },
+  landmaaler_pointe: {
+    title: 'Matematik kan spå',
+    text: 'Du vidste, at der var 25 felter, før der var sået et eneste frø. Sådan kunne landmåleren fortælle bonden, hvor meget korn han skulle bruge.',
+  },
+  landmaaler_spor: {
+    title: 'Spor i din verden',
+    text: 'Samme hegn kan give en hundegård med god plads eller en smal gang. Det gælder også, når man kridter en fodboldbane op.',
+  },
+  landmaaler_kvadratmeter: {
+    title: 'Kvadratmeter',
+    text: 'Når man lægger gulv eller maler en væg, tæller man felter på 1 meter gange 1 meter. Dem kalder vi kvadratmeter.',
+  },
+  landmaaler_slut: {
+    title: 'Rejsen er slut',
+    text: 'Tælle, samle i bundter, skrive ned og måle: alt sammen fandt mennesker på, fordi de havde brug for det. Nu kan du det også.',
+  },
+
+  // --- Gården, når alle fire baner er gennemført -------------------------------------
+  gaard_alle_faerdige: {
+    title: 'Hele rejsen er gennemført',
+    text: 'Du har talt som hyrden, samlet i bundter som købmanden, skrevet som skriveren og målt som landmåleren. Peg på en brik for at prøve en bane igen.',
   },
 };
 
@@ -215,6 +315,28 @@ export const BUTTONS = {
   // Lille brik under tekstpladen på alle stationer: forlad banen midtvejs (to tryk)
   forlad: '‹ TIL GÅRDEN',
   forladIgen: 'TRYK IGEN',
+  // Gården: nulstil fremdriften, så næste elev kan starte forfra (to tryk)
+  forfra: 'FORFRA',
+  // Landmåleren: gæt før man prøver
+  ja: 'JA',
+  nej: 'NEJ',
+};
+
+// --- Landmåleren: korte, dynamiske tekster med tal (ingen lydfil) -----------------------
+/** Fx "Rebet: 2 + 6 + 2 + 6 = 16 skridt." */
+export function ropeText(w, l) {
+  return `Rebet: ${w} + ${l} + ${w} + ${l} = ${2 * (w + l)} skridt.`;
+}
+/** Fx "2 rækker med 6 i hver: 12 felter." */
+export function fieldText(w, l) {
+  return `${w} ${w === 1 ? 'række' : 'rækker'} med ${l} i hver: ${w * l} felter.`;
+}
+/** Små tilføjelser til panelet hos Landmåleren. */
+export const LANDMAALER_HINT = {
+  felterSmaat: 'felter',
+  skridt: 'skridt',
+  klar: 'Peg på VIDERE, når du er klar.',
+  proevet: 'Prøvet:',
 };
 
 // --- Købmanden: korte, dynamiske tekster med tal (ingen lydfil, ligesom explain()) ------

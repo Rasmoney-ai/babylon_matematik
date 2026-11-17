@@ -3,6 +3,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { buildEduba } from './scene/eduba.js';
 import { buildFold } from './scene/fold.js';
 import { buildMarket } from './scene/market.js';
+import { buildField } from './scene/field.js';
 import { createInteraction } from './core/interaction.js';
 import { createDesktopControls } from './core/desktopControls.js';
 import { createFade } from './core/fade.js';
@@ -11,6 +12,7 @@ import { Hub } from './game/hub.js';
 import { HyrdeLevel } from './game/hyrde.js';
 import { SkriverLevel } from './game/skriver.js';
 import { KoebmandLevel } from './game/koebmand.js';
+import { LandmaalerLevel } from './game/landmaaler.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -35,7 +37,7 @@ scene.add(rig);
 
 // --- Verden og stationer ---------------------------------------------------------
 const world = buildEduba(scene);
-const stations = { ...world.stations, fold: buildFold(scene, world), marked: buildMarket(scene, world) };
+const stations = { ...world.stations, fold: buildFold(scene, world), marked: buildMarket(scene, world), mark: buildField(scene, world) };
 
 const interaction = createInteraction({ renderer, camera, rig, dom: renderer.domElement });
 const controls = createDesktopControls({ camera, renderer, dom: renderer.domElement, bounds: stations.gaard.bounds });
@@ -54,7 +56,7 @@ levels
   .register({ id: 'hyrde', station: 'fold', Level: HyrdeLevel })
   .register({ id: 'koebmand', station: 'marked', Level: KoebmandLevel })
   .register({ id: 'skriver', station: 'gaard', Level: SkriverLevel })
-  .register({ id: 'landmaaler', station: 'gaard', Level: null });   // bygges senere
+  .register({ id: 'landmaaler', station: 'mark', Level: LandmaalerLevel });
 
 const hub = new Hub({ scene, interaction, levels });
 levels.home();
